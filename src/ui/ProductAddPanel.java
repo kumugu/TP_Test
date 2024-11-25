@@ -40,7 +40,7 @@ public class ProductAddPanel extends JPanel {
         // 재료 추가 관련 컴포넌트
         JLabel ingredientLabel = new JLabel("재료:");
         ingredientComboBox = new JComboBox<>();
-        loadIngredients(); // 재료 목록 로드
+        loadIngredients(); // 재료 로드
         JTextField quantityField = new JTextField(5); // 고정 크기 설정
         JButton addIngredientButton = new JButton("재료 추가");
 
@@ -198,7 +198,7 @@ public class ProductAddPanel extends JPanel {
 
 
 
-    private void loadIngredients() {
+    void loadIngredients() {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement("SELECT NAME FROM INGREDIENTS");
              ResultSet rs = stmt.executeQuery()) {
@@ -207,11 +207,15 @@ public class ProductAddPanel extends JPanel {
             while (rs.next()) {
                 ingredientComboBox.addItem(rs.getString("NAME"));
             }
+
+            System.out.println("Ingredients loaded successfully."); // 디버깅 로그
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "재료 목록을 불러오는 데 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
 
     private void addIngredientToTable(JTextField quantityField) {
         String ingredientName = (String) ingredientComboBox.getSelectedItem();
@@ -231,6 +235,28 @@ public class ProductAddPanel extends JPanel {
         }
     }
 
+    private void addIngredient(String name, String category, int stock, double unitPrice) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO INGREDIENTS (NAME, CATEGORY, STOCK, UNIT_PRICE) VALUES (?, ?, ?, ?)")) {
+
+            stmt.setString(1, name);
+            stmt.setString(2, category);
+            stmt.setInt(3, stock);
+            stmt.setDouble(4, unitPrice);
+            stmt.executeUpdate();
+
+            JOptionPane.showMessageDialog(this, "재료가 등록되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
+
+            // 재료 콤보박스 갱신
+            loadIngredients(); // 재료 추가 후 콤보박스 갱신
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "재료 등록에 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
     private void deleteSelectedIngredient(JTable ingredientTable) {
         int selectedRow = ingredientTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -241,33 +267,47 @@ public class ProductAddPanel extends JPanel {
     }
 
     private void registerProduct(JTextField nameField, JComboBox<String> categoryComboBox, JTextField priceField) {
-        String name = nameField.getText();
+        String name = nameField.getText().trim();
         String category = (String) categoryComboBox.getSelectedItem();
-        String price = priceField.getText();
+        String priceText = priceField.getText().trim();
 
-        if (name.isEmpty() || category == null || price.isEmpty() || ingredientTableModel.getRowCount() == 0) {
+        // 입력값 검증
+        if (name.isEmpty() || priceText.isEmpty() || ingredientTableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "모든 필드를 입력하고 재료를 추가하세요.", "오류", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        double price;
+        try {
+            price = Double.parseDouble(priceText); // 숫자 변환 시도
+            if (price <= 0) {
+                JOptionPane.showMessageDialog(this, "가격은 0보다 큰 숫자여야 합니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "가격은 숫자로 입력해야 합니다.", "오류", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            // PRODUCTS 테이블에 상품 삽입
+            // PRODUCTS 테이블에 데이터 삽입
             try (PreparedStatement stmt = conn.prepareStatement(
                     "INSERT INTO PRODUCTS (ID, NAME, CATEGORY, PRICE) VALUES (PRODUCT_SEQ.NEXTVAL, ?, ?, ?)")) {
                 stmt.setString(1, name);
                 stmt.setString(2, category);
-                stmt.setDouble(3, Double.parseDouble(price));
+                stmt.setDouble(3, price);
                 stmt.executeUpdate();
             }
 
-            // PRODUCT_INGREDIENTS 테이블에 재료 정보 삽입
+            // PRODUCT_INGREDIENTS 테이블에 데이터 삽입
             try (PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO PRODUCT_INGREDIENTS (PRODUCT_ID, INGREDIENT_ID, QUANTITY) VALUES (PRODUCT_SEQ.CURRVAL, (SELECT ID FROM INGREDIENTS WHERE NAME = ?), ?)")) {
+                    "INSERT INTO PRODUCT_INGREDIENTS (PRODUCT_ID, INGREDIENT_ID, QUANTITY) " +
+                            "VALUES (PRODUCT_SEQ.CURRVAL, (SELECT ID FROM INGREDIENTS WHERE NAME = ?), ?)")) {
                 for (int i = 0; i < ingredientTableModel.getRowCount(); i++) {
-                    stmt.setString(1, (String) ingredientTableModel.getValueAt(i, 0)); // 재료명
-                    stmt.setInt(2, (int) ingredientTableModel.getValueAt(i, 1)); // 수량
+                    stmt.setString(1, (String) ingredientTableModel.getValueAt(i, 0));
+                    stmt.setInt(2, (Integer) ingredientTableModel.getValueAt(i, 1));
                     stmt.executeUpdate();
                 }
             }
@@ -275,13 +315,14 @@ public class ProductAddPanel extends JPanel {
             conn.commit();
             JOptionPane.showMessageDialog(this, "상품이 등록되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
 
-            // 필드 초기화
+            // 입력 필드 및 테이블 초기화
             nameField.setText("");
             priceField.setText("");
-            ingredientTableModel.setRowCount(0); // 테이블 초기화
-        } catch (SQLException e) {
+            ingredientTableModel.setRowCount(0);
+        } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "상품 등록에 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 }

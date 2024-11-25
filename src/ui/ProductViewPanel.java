@@ -108,22 +108,22 @@ public class ProductViewPanel extends JPanel {
     private void loadAllProducts() {
         productTableModel.setRowCount(0); // 기존 데이터 초기화
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM PRODUCTS ORDER BY ID ASC");
+             PreparedStatement stmt = conn.prepareStatement("SELECT ID, NAME, CATEGORY, PRICE FROM PRODUCTS");
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 productTableModel.addRow(new Object[]{
-                        String.valueOf(rs.getInt("ID")), // String으로 변환하여 테이블에 추가
-                        rs.getString("NAME"),
-                        rs.getString("CATEGORY"),
-                        rs.getDouble("PRICE"),
-                        rs.getString("STATUS")
+                        rs.getInt("ID"),         // ID 컬럼
+                        rs.getString("NAME"),    // NAME 컬럼
+                        rs.getString("CATEGORY"), // CATEGORY 컬럼
+                        rs.getDouble("PRICE")    // PRICE 컬럼
                 });
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     //  DB에서 보유 재료 가져오기
     private List<String> getIngredientNames() {
@@ -170,23 +170,22 @@ public class ProductViewPanel extends JPanel {
             return;
         }
 
-        // 테이블에서 상품 정보 가져오기
-        int id = Integer.parseInt((String) productTableModel.getValueAt(selectedRow, 0));
+        // 테이블에서 데이터 가져오기
+        int id = (Integer) productTableModel.getValueAt(selectedRow, 0); // ID는 Integer로 가져옴
         String currentName = (String) productTableModel.getValueAt(selectedRow, 1);
         String currentCategory = (String) productTableModel.getValueAt(selectedRow, 2);
-        double currentPrice = (double) productTableModel.getValueAt(selectedRow, 3);
+        double currentPrice = (Double) productTableModel.getValueAt(selectedRow, 3);
 
         // 수정 다이얼로그 생성
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "상품 수정", true);
-        dialog.setSize(800, 600); // 창 크기 넓힘
+        dialog.setSize(800, 600); // 다이얼로그 크기 설정
         dialog.setLayout(new BorderLayout());
 
-        // 상단 패널: 상품 정보
+        // 상단 패널: 상품 정보 입력
         JPanel topPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // 컴포넌트 여백 설정
+        gbc.insets = new Insets(10, 10, 10, 10);
 
-        // 상품명 입력
         JLabel nameLabel = new JLabel("상품명:");
         JTextField nameField = new JTextField(currentName, 20);
 
@@ -196,7 +195,6 @@ public class ProductViewPanel extends JPanel {
         gbc.gridx = 1;
         topPanel.add(nameField, gbc);
 
-        // 카테고리 선택
         JLabel categoryLabel = new JLabel("카테고리:");
         JComboBox<String> categoryComboBox = new JComboBox<>(new String[]{"햄버거", "음료", "사이드"});
         categoryComboBox.setSelectedItem(currentCategory);
@@ -207,7 +205,6 @@ public class ProductViewPanel extends JPanel {
         gbc.gridx = 1;
         topPanel.add(categoryComboBox, gbc);
 
-        // 가격 입력
         JLabel priceLabel = new JLabel("가격:");
         JTextField priceField = new JTextField(String.valueOf(currentPrice), 10);
 
@@ -263,21 +260,19 @@ public class ProductViewPanel extends JPanel {
 
 
 
-    // 재료 로드 메서드
+    // 상품의 재료 로드
     private void loadProductIngredients(int productId, DefaultTableModel ingredientTableModel) {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT i.NAME, pi.QUANTITY " +
-                             "FROM PRODUCT_INGREDIENTS pi " +
-                             "JOIN INGREDIENTS i ON pi.INGREDIENT_ID = i.ID " +
-                             "WHERE pi.PRODUCT_ID = ?")) {
+                     "SELECT INGREDIENTS.NAME, PRODUCT_INGREDIENTS.QUANTITY " +
+                             "FROM PRODUCT_INGREDIENTS " +
+                             "JOIN INGREDIENTS ON PRODUCT_INGREDIENTS.INGREDIENT_ID = INGREDIENTS.ID " +
+                             "WHERE PRODUCT_INGREDIENTS.PRODUCT_ID = ?")) {
             stmt.setInt(1, productId);
             try (ResultSet rs = stmt.executeQuery()) {
+                ingredientTableModel.setRowCount(0); // 기존 데이터 초기화
                 while (rs.next()) {
-                    ingredientTableModel.addRow(new Object[]{
-                            rs.getString("NAME"),
-                            rs.getInt("QUANTITY")
-                    });
+                    ingredientTableModel.addRow(new Object[]{rs.getString("NAME"), rs.getInt("QUANTITY")});
                 }
             }
         } catch (Exception e) {
