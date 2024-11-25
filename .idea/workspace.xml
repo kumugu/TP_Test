@@ -5,8 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8dae0d1d-4bf6-4593-9e9a-75b28f48cd0b" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/src/ui/LoginRegisterPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/SignUpPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/DatabaseSetup.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/DatabaseSetup.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/proto3/ui/LoginPanel.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/proto3/ui/LoginPanel.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/proto3/ui/MainFrame$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/proto3/ui/MainFrame$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/proto3/ui/MainFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/proto3/ui/MainFrame.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/LoginPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/MainFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
