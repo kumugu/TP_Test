@@ -4,9 +4,9 @@ import db.DBConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.Statement;
 
 public class DatabaseSetup {
-
     public static void main(String[] args) {
         try (Connection conn = DBConnection.getConnection()) {
             System.out.println("Database connection established.");
@@ -24,72 +24,183 @@ public class DatabaseSetup {
     }
 
     private static void createTables(Connection conn) throws Exception {
-        String[] tableStatements = {
-                // PRODUCTS 테이블
-                "CREATE TABLE PRODUCTS (ID NUMBER PRIMARY KEY, NAME VARCHAR2(100) NOT NULL, CATEGORY VARCHAR2(50), PRICE NUMBER NOT NULL)",
-                "CREATE SEQUENCE PRODUCT_SEQ START WITH 1 INCREMENT BY 1 NOCACHE",
+        try (Statement stmt = conn.createStatement()) {
+            // employee_groups 테이블 생성
+            stmt.execute("""
+            BEGIN
+                EXECUTE IMMEDIATE '
+                    CREATE TABLE employee_groups (
+                        group_id INT PRIMARY KEY,
+                        group_name VARCHAR(100) NOT NULL
+                    )
+                ';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -955 THEN RAISE; END IF;
+            END;
+            """);
 
-                // INGREDIENTS 테이블
-                "CREATE TABLE INGREDIENTS (ID NUMBER PRIMARY KEY, NAME VARCHAR2(100) NOT NULL, CATEGORY VARCHAR2(50), STOCK NUMBER NOT NULL, UNIT_PRICE NUMBER NOT NULL)",
-                "CREATE SEQUENCE INGREDIENT_SEQ START WITH 1 INCREMENT BY 1 NOCACHE",
+            // employee_positions 테이블 생성
+            stmt.execute("""
+            BEGIN
+                EXECUTE IMMEDIATE '
+                    CREATE TABLE employee_positions (
+                        position_id INT PRIMARY KEY,
+                        position_name VARCHAR(100) NOT NULL
+                    )
+                ';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -955 THEN RAISE; END IF;
+            END;
+            """);
 
-                // PRODUCT_INGREDIENTS 테이블
-                "CREATE TABLE PRODUCT_INGREDIENTS (PRODUCT_ID NUMBER REFERENCES PRODUCTS(ID) ON DELETE CASCADE, INGREDIENT_ID NUMBER REFERENCES INGREDIENTS(ID) ON DELETE CASCADE, QUANTITY NUMBER NOT NULL, PRIMARY KEY (PRODUCT_ID, INGREDIENT_ID))",
+            // employees 테이블 생성
+            stmt.execute("""
+            BEGIN
+                EXECUTE IMMEDIATE '
+                    CREATE TABLE employees (
+                        employee_id INT PRIMARY KEY,
+                        employee_name VARCHAR(100) NOT NULL,
+                        employee_email VARCHAR(100) NOT NULL,
+                        employee_phone VARCHAR(15),
+                        group_id INT,
+                        position_id INT,
+                        employee_id_value VARCHAR(100) UNIQUE,
+                        employee_password VARCHAR(100),
+                        FOREIGN KEY (group_id) REFERENCES employee_groups(group_id) ON DELETE SET NULL,
+                        FOREIGN KEY (position_id) REFERENCES employee_positions(position_id) ON DELETE SET NULL
+                    )
+                ';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -955 THEN RAISE; END IF;
+            END;
+            """);
 
-                // SALES 테이블
-                "CREATE TABLE SALES (ID NUMBER PRIMARY KEY, PRODUCT_ID NUMBER REFERENCES PRODUCTS(ID), QUANTITY NUMBER NOT NULL, SALE_DATE DATE DEFAULT SYSDATE)",
-                "CREATE SEQUENCE SALES_SEQ START WITH 1 INCREMENT BY 1 NOCACHE",
+            // 시퀀스 및 트리거 설정
+            stmt.execute("""
+            BEGIN
+                EXECUTE IMMEDIATE '
+                    CREATE SEQUENCE employee_seq
+                    START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE
+                ';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -955 THEN RAISE; END IF;
+            END;
+            """);
 
-                // CATEGORIES 테이블
-                "CREATE TABLE CATEGORIES (ID NUMBER PRIMARY KEY, NAME VARCHAR2(50) UNIQUE NOT NULL, TYPE VARCHAR2(20) NOT NULL)",
-                "CREATE SEQUENCE CATEGORY_SEQ START WITH 1 INCREMENT BY 1 NOCACHE"
-        };
-
-        for (String sql : tableStatements) {
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.executeUpdate();
-            } catch (Exception e) {
-                System.out.println("Error executing: " + sql);
-                e.printStackTrace();
-            }
+            stmt.execute("""
+            BEGIN
+                EXECUTE IMMEDIATE '
+                    CREATE OR REPLACE TRIGGER employee_id_trigger
+                    BEFORE INSERT ON employees
+                    FOR EACH ROW
+                    BEGIN
+                      SELECT employee_seq.NEXTVAL INTO :NEW.employee_id FROM dual;
+                    END;
+                ';
+            EXCEPTION
+                WHEN OTHERS THEN
+                    IF SQLCODE != -955 THEN RAISE; END IF;
+            END;
+            """);
         }
     }
+
 
     private static void insertSampleData(Connection conn) throws Exception {
-        String[] sampleData = {
-                // CATEGORIES 데이터
-                "INSERT INTO CATEGORIES (ID, NAME, TYPE) VALUES (CATEGORY_SEQ.NEXTVAL, '햄버거', '상품')",
-                "INSERT INTO CATEGORIES (ID, NAME, TYPE) VALUES (CATEGORY_SEQ.NEXTVAL, '음료', '상품')",
-                "INSERT INTO CATEGORIES (ID, NAME, TYPE) VALUES (CATEGORY_SEQ.NEXTVAL, '사이드', '상품')",
-                "INSERT INTO CATEGORIES (ID, NAME, TYPE) VALUES (CATEGORY_SEQ.NEXTVAL, '빵', '재료')",
-                "INSERT INTO CATEGORIES (ID, NAME, TYPE) VALUES (CATEGORY_SEQ.NEXTVAL, '고기', '재료')",
-                "INSERT INTO CATEGORIES (ID, NAME, TYPE) VALUES (CATEGORY_SEQ.NEXTVAL, '치즈', '재료')",
+        // employee_groups 데이터 삽입
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "MERGE INTO employee_groups g " +
+                        "USING (SELECT ? AS group_id, ? AS group_name FROM dual) d " +
+                        "ON (g.group_id = d.group_id) " +
+                        "WHEN NOT MATCHED THEN " +
+                        "INSERT (group_id, group_name) VALUES (d.group_id, d.group_name)")) {
+            stmt.setInt(1, 1);
+            stmt.setString(2, "관리자");
+            stmt.executeUpdate();
 
-                // INGREDIENTS 데이터
-                "INSERT INTO INGREDIENTS (ID, NAME, CATEGORY, STOCK, UNIT_PRICE) VALUES (INGREDIENT_SEQ.NEXTVAL, '빵', '빵', 100, 0.50)",
-                "INSERT INTO INGREDIENTS (ID, NAME, CATEGORY, STOCK, UNIT_PRICE) VALUES (INGREDIENT_SEQ.NEXTVAL, '소고기', '고기', 50, 2.00)",
-                "INSERT INTO INGREDIENTS (ID, NAME, CATEGORY, STOCK, UNIT_PRICE) VALUES (INGREDIENT_SEQ.NEXTVAL, '치즈', '치즈', 200, 0.75)",
+            stmt.setInt(1, 2);
+            stmt.setString(2, "주방");
+            stmt.executeUpdate();
 
-                // PRODUCTS 데이터
-                "INSERT INTO PRODUCTS (ID, NAME, CATEGORY, PRICE) VALUES (PRODUCT_SEQ.NEXTVAL, '치즈버거', '햄버거', 5.50)",
-                "INSERT INTO PRODUCTS (ID, NAME, CATEGORY, PRICE) VALUES (PRODUCT_SEQ.NEXTVAL, '콜라', '음료', 1.50)",
-                "INSERT INTO PRODUCTS (ID, NAME, CATEGORY, PRICE) VALUES (PRODUCT_SEQ.NEXTVAL, '감자튀김', '사이드', 2.00)",
+            stmt.setInt(1, 3);
+            stmt.setString(2, "카운터");
+            stmt.executeUpdate();
 
-                // PRODUCT_INGREDIENTS 데이터
-                "INSERT INTO PRODUCT_INGREDIENTS (PRODUCT_ID, INGREDIENT_ID, QUANTITY) VALUES (1, 1, 2)", // 치즈버거에 빵 2개
-                "INSERT INTO PRODUCT_INGREDIENTS (PRODUCT_ID, INGREDIENT_ID, QUANTITY) VALUES (1, 2, 1)", // 치즈버거에 소고기 1개
-                "INSERT INTO PRODUCT_INGREDIENTS (PRODUCT_ID, INGREDIENT_ID, QUANTITY) VALUES (1, 3, 1)"  // 치즈버거에 치즈 1개
-        };
-
-        for (String sql : sampleData) {
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.executeUpdate();
-            } catch (Exception e) {
-                System.out.println("Error executing: " + sql);
-                e.printStackTrace();
-            }
+            stmt.setInt(1, 4);
+            stmt.setString(2, "알바생");
+            stmt.executeUpdate();
         }
 
-        System.out.println("Sample data inserted.");
+        // employee_positions 데이터 삽입
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "MERGE INTO employee_positions p " +
+                        "USING (SELECT ? AS position_id, ? AS position_name FROM dual) d " +
+                        "ON (p.position_id = d.position_id) " +
+                        "WHEN NOT MATCHED THEN " +
+                        "INSERT (position_id, position_name) VALUES (d.position_id, d.position_name)")) {
+            stmt.setInt(1, 1);
+            stmt.setString(2, "점장");
+            stmt.executeUpdate();
+
+            stmt.setInt(1, 2);
+            stmt.setString(2, "매니저");
+            stmt.executeUpdate();
+
+            stmt.setInt(1, 3);
+            stmt.setString(2, "오전 알바");
+            stmt.executeUpdate();
+
+            stmt.setInt(1, 4);
+            stmt.setString(2, "오후 알바");
+            stmt.executeUpdate();
+
+            stmt.setInt(1, 5);
+            stmt.setString(2, "사장");
+            stmt.executeUpdate();
+        }
+
+        // employees 데이터 삽입
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "MERGE INTO employees e " +
+                        "USING (SELECT ? AS employee_id_value FROM dual) d " +
+                        "ON (e.employee_id_value = d.employee_id_value) " +
+                        "WHEN NOT MATCHED THEN " +
+                        "INSERT (employee_name, employee_email, employee_phone, group_id, position_id, employee_id_value, employee_password) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+            stmt.setString(1, "hong123");
+            stmt.setString(2, "홍길동");
+            stmt.setString(3, "hong@burger.com");
+            stmt.setString(4, "010-1234-5678");
+            stmt.setInt(5, 1);
+            stmt.setInt(6, 1);
+            stmt.setString(7, "hong123");
+            stmt.setString(8, "password123");
+            stmt.executeUpdate();
+
+            stmt.setString(1, "kim123");
+            stmt.setString(2, "김영희");
+            stmt.setString(3, "kim@burger.com");
+            stmt.setString(4, "010-2345-6789");
+            stmt.setInt(5, 2);
+            stmt.setInt(6, 2);
+            stmt.setString(7, "kim123");
+            stmt.setString(8, "password456");
+            stmt.executeUpdate();
+
+            stmt.setString(1, "lee123");
+            stmt.setString(2, "이민수");
+            stmt.setString(3, "lee@burger.com");
+            stmt.setString(4, "010-3456-7890");
+            stmt.setInt(5, 3);
+            stmt.setInt(6, 3);
+            stmt.setString(7, "lee123");
+            stmt.setString(8, "password789");
+            stmt.executeUpdate();
+        }
     }
+
 }
