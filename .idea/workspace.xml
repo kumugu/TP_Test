@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="8dae0d1d-4bf6-4593-9e9a-75b28f48cd0b" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/proto3.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/db/DBConnection.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/DatabaseSetup.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/IngredientAddPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/InventoryPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/InventoryViewPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/LobbyPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/LoginPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/MainFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/ProductAddPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/ProductManagementPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/ProductViewPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/ReportPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/SalesPanel.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 0
+}]]></component>
+  <component name="ProjectId" id="2pKYof5EQeok3Glx3rT9GW84HEo" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/workspace/Jar/ojdbc6.jar",
+    "project.structure.last.edited": "모듈",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "애플리케이션.DatabaseSetup.executor": "Run",
+    "애플리케이션.MainFrame.executor": "Run"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="ui" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="애플리케이션 수준" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="디폴트 작업">
+      <changelist id="8dae0d1d-4bf6-4593-9e9a-75b28f48cd0b" name="변경" comment="" />
+      <created>1732516410618</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1732516410618</updated>
+    </task>
+    <servers />
+  </component>
+</project>
